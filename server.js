@@ -56,4 +56,4 @@ app.use("/comments", commentRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/mail", mailRoute);
 
-app.listen(3001, () => console.log("Server chạy tại http://localhost:3001"));
+app.listen(3001, () => console.log("Server chạy tại http://103.159.51.131:3001"));

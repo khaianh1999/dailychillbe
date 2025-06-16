@@ -9,7 +9,7 @@ passport.use(
         {
             clientID: process.env.FB_CLIENT_ID,
             clientSecret: process.env.FB_CLIENT_SECRET,
-            callbackURL: "http://localhost:3001/auth/facebook/callback",
+            callbackURL: "http://103.159.51.131:3001/auth/facebook/callback",
             profileFields: ["id", "displayName", "name", "emails"], // Lấy thêm thông tin nếu cần
         },
         async function (accessToken, refreshToken, profile, done) {
