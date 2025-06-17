@@ -61,7 +61,7 @@ class User {
             const result = await pool
                 .request()
                 .input("id", sql.Int, id)
-                .query("SELECT id, full_name, refer_code, code, avatar, email, id_fb, deleted FROM users WHERE id = @id"); // Loại bỏ password
+                .query("SELECT id, full_name, coin, refer_code, code, avatar, email, id_fb, deleted FROM users WHERE id = @id"); // Loại bỏ password
             return result.recordset[0];
         } catch (err) {
             throw err;
@@ -106,7 +106,7 @@ class User {
     
         return true;
     }
-
+    /*
     static async processBuyNow(userId, { email, address, phone_number, product_id }) {
         const pool = await poolPromise;
       
@@ -165,6 +165,67 @@ class User {
       
         return insertResult.recordset[0];
     }
+    */
+
+    static async processBuyNow(userId, { email, address, phone_number, product_id }) {
+      const pool = await poolPromise;
+  
+      // 1. Lấy thông tin sản phẩm
+      const productResult = await pool
+          .request()
+          .input("id", sql.Int, product_id)
+          .query("SELECT price FROM products WHERE id = @id AND deleted = 0");
+  
+      const product = productResult.recordset[0];
+      if (!product) throw new Error("PRODUCT_NOT_FOUND");
+  
+      const price = product.price;
+  
+      // 2. Lấy thông tin người dùng
+      const userResult = await pool
+          .request()
+          .input("id", sql.Int, userId)
+          .query("SELECT coin FROM users WHERE id = @id");
+  
+      const user = userResult.recordset[0];
+      if (!user || user.coin < price) throw new Error("NOT_ENOUGH_COIN");
+  
+      // 3. Cập nhật thông tin người dùng
+      await pool
+          .request()
+          .input("id", sql.Int, userId)
+          .input("email", sql.NVarChar, email)
+          .input("address", sql.NVarChar, address)
+          .input("phone", sql.NVarChar, phone_number)
+          .query(`
+              UPDATE users
+              SET email = @email, address = @address, phone_number = @phone
+              WHERE id = @id
+          `);
+  
+      // 4. Trừ coin
+      await pool
+          .request()
+          .input("id", sql.Int, userId)
+          .input("price", sql.Int, price)
+          .query("UPDATE users SET coin = coin - @price WHERE id = @id");
+  
+      // 5. Thêm đơn hàng
+      await pool
+          .request()
+          .input("user_id", sql.Int, userId)
+          .input("total_amount", sql.Int, price)
+          .input("status", sql.Int, 0)
+          .input("product_id", sql.Int, product_id)
+          .query(`
+              INSERT INTO orders (user_id, total_amount, status, product_id, created_at)
+              VALUES (@user_id, @total_amount, @status, @product_id, GETDATE())
+          `);
+  
+      // 6. Trả về thông tin user mới
+      return await this.getUserInfor(userId);
+  }
+  
     
     static async getOrdersByUserId(userId) {
         const pool = await poolPromise;
