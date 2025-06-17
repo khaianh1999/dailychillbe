@@ -22,7 +22,7 @@ passport.use(new GoogleStrategy({
   
       if (result.recordset.length === 0) {
         const avatar = "uploads/avatar.jpg";
-        const coin = 0;
+        const coin = 1; // vào đăng nhập tặng 1 coin
         const code = generateRandomUppercaseCode(8);
 
         await pool.request()
