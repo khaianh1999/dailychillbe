@@ -81,6 +81,75 @@ class Article {
         }
     }
 
+    static async getAllMyArticles(queryParams = {}, user_id) {
+        const page = parseInt(queryParams.page, 10) || 1;
+        const limit = parseInt(queryParams.limit, 20) || 20; // Changed base 20 to 10 for consistency
+        const searchQuery = queryParams.searchQuery || '';
+        const categoryType = queryParams.category || ''; // Renamed to categoryType to reflect it's the 'type' column
+      
+        const isAdmin = queryParams.isAdmin || null;
+
+        const offset = (page - 1) * limit;
+
+        try {
+            const pool = await poolPromise;
+            const request = pool.request();
+            let whereClause = `WHERE a.deleted = 0`;
+
+            if (user_id != null) { // có lọc user_id
+                whereClause += ` AND a.user_id = ${user_id}`;
+            }
+
+            if (searchQuery) {
+                whereClause += ` AND a.title LIKE @searchPattern`;
+                request.input('searchPattern', sql.NVarChar, `%${searchQuery}%`);
+            }
+
+            // --- CẬP NHẬT LOGIC LỌC THEO CATEGORY (Dựa trên cột 'type' của bảng categories) ---
+            if (categoryType) {
+                // Bước 1: Tìm ID của danh mục dựa trên tên Type
+                whereClause += ` AND EXISTS (
+                    SELECT 1 FROM categories AS c
+                    WHERE c.type = @categoryType AND c.deleted = 0
+                    AND ',' + a.category_ids + ',' LIKE '%,' + CAST(c.id AS NVARCHAR(MAX)) + ',%'
+                )`;
+                request.input('categoryType', sql.NVarChar, categoryType); // Input parameter name updated
+            }
+            // ----------------------------------------
+
+            const countQuery = `SELECT COUNT(*) as totalItems FROM articles a ${whereClause}`;
+            const totalResult = await request.query(countQuery);
+            const totalItems = totalResult.recordset[0].totalItems;
+            const totalPages = Math.ceil(totalItems / limit);
+
+            const dataQuery = `
+                SELECT a.id, u.full_name, a.title, a.image_url, a.content, a.category_ids, a.created_at, a.updated_at, a.updated_by, a.status
+                FROM articles a
+                LEFT JOIN users u ON u.id = a.user_id
+                ${whereClause}
+                ORDER BY a.created_at DESC
+                OFFSET @offset ROWS
+                FETCH NEXT @limit ROWS ONLY;
+            `;
+            request.input('offset', sql.Int, offset);
+            request.input('limit', sql.Int, limit);
+            const dataResult = await request.query(dataQuery);
+            
+            return {
+                data: dataResult.recordset,
+                meta: {
+                    totalItems,
+                    itemsPerPage: limit,
+                    currentPage: page,
+                    totalPages,
+                }
+            };
+        } catch (err) {
+            console.error('SQL error in getAllArticles:', err); // Specific error log
+            throw err;
+        }
+    }
+
 
     /**
      * Lấy chi tiết một bài viết theo ID

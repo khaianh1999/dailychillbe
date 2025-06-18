@@ -50,6 +50,7 @@ const upload = multer({
 
 router.post("/api", verifyToken, upload.single('image'), articleController.createArticleByClient);
 router.post("/put-article", verifyToken, articleController.verifyArticleForUser);
+router.get("/my-articles",verifyToken, articleController.getAllMyArticles);
 
 router.get("/", articleController.getAllArticles);
 router.get("/:id", articleController.getArticleById);

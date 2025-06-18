@@ -12,6 +12,19 @@ const articleController = {
             res.status(500).json({ message: 'Lỗi khi lấy danh sách bài viết', error: err.message });
         }
     },
+    async getAllMyArticles(req, res) {
+        try {
+            const user_id = req.user.id;
+            if (!user_id) {
+                res.status(500).json({ message: 'Lỗi lấy danh sách bài viết', error: "Lỗi token" });
+                return;
+            }
+            const result = await Article.getAllMyArticles(req.query, user_id);
+            res.status(200).json(result);
+        } catch (err) {
+            res.status(500).json({ message: 'Lỗi khi lấy danh sách bài viết', error: err.message });
+        }
+    },
 
     async getArticleById(req, res) {
         try {
