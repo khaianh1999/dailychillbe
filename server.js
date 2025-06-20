@@ -27,6 +27,11 @@ const corsOptions = {
     optionsSuccessStatus: 204 // Một số trình duyệt cũ (IE11, various SmartTVs) mắc kẹt ở 200
 };
 app.use(cors(corsOptions)); // Sử dụng middleware cors với cấu hình
+
+// 2. Tăng giới hạn kích thước body
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // Middleware để parse body của request (đặt trước các route và static file serving)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
