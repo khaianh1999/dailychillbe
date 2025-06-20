@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
 // Khởi tạo Multer với cấu hình storage
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn kích thước file 5MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // Giới hạn kích thước file 10MB
     fileFilter: function (req, file, cb) {
         // Chỉ cho phép các loại file ảnh
         const filetypes = /jpeg|jpg|png|gif/;
