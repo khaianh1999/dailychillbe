@@ -60,7 +60,7 @@ const articleController = {
         try {
             // req.file chứa thông tin về file đã tải lên (nếu có)
             // req.body chứa các dữ liệu text khác từ form
-            const { title, content, category_ids, updated_by } = req.body;
+            const { title, content, category_ids, updated_by, is_anonymous, name_anonymous} = req.body;
             let image_url = null;
     
             if (req.file) {
@@ -76,6 +76,8 @@ const articleController = {
                 category_ids,
                 updated_by: parseInt(updated_by) ?? 1, // Đảm bảo updated_by là số nguyên
                 status: 1, // admin đăng thì public luôn
+                is_anonymous : is_anonymous ?? 0,
+                name_anonymous : name_anonymous ?? "",
             };
     
             const newArticle = await Article.createArticle(articleData);
@@ -97,7 +99,7 @@ const articleController = {
         try {
             // req.file chứa thông tin về file đã tải lên (nếu có)
             // req.body chứa các dữ liệu text khác từ form
-            const { title, content, category_ids, updated_by } = req.body;
+            const { title, content, category_ids, updated_by, is_anonymous, name_anonymous } = req.body;
             let image_url = null;
             const user_id = req.user.id;
             if (!user_id) {
@@ -117,7 +119,9 @@ const articleController = {
                 image_url, // Đường dẫn ảnh hoặc null
                 content,
                 category_ids,
-                updated_by: parseInt(updated_by) ?? 1 // Đảm bảo updated_by là số nguyên
+                updated_by: parseInt(updated_by) ?? 1, // Đảm bảo updated_by là số nguyên
+                is_anonymous : is_anonymous ?? 0,
+                name_anonymous : name_anonymous ?? "",
             };
     
             const newArticle = await Article.createArticleByClient(articleData);

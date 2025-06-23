@@ -54,7 +54,7 @@ class Article {
             const totalPages = Math.ceil(totalItems / limit);
 
             const dataQuery = `
-                SELECT a.id, u.full_name, a.title, a.image_url, a.content, a.category_ids, a.created_at, a.updated_at, a.updated_by, a.status
+                SELECT a.id, u.full_name, a.title, a.image_url, a.content, a.category_ids, a.created_at, a.updated_at, a.updated_by, a.status, a.name_anonymous, a.is_anonymous
                 FROM articles a
                 LEFT JOIN users u ON u.id = a.user_id
                 ${whereClause}
@@ -123,7 +123,7 @@ class Article {
             const totalPages = Math.ceil(totalItems / limit);
 
             const dataQuery = `
-                SELECT a.id, u.full_name, a.title, a.image_url, a.content, a.category_ids, a.created_at, a.updated_at, a.updated_by, a.status
+                SELECT a.id, u.full_name, a.title, a.image_url, a.content, a.category_ids, a.created_at, a.updated_at, a.updated_by, a.status, a.name_anonymous, a.is_anonymous
                 FROM articles a
                 LEFT JOIN users u ON u.id = a.user_id
                 ${whereClause}
@@ -190,6 +190,8 @@ class Article {
                     a.updated_at,
                     a.updated_by,
                     a.status,
+                    a.name_anonymous,
+                    a.is_anonymous,
                     us.full_name,
                     us.id AS user_id_author,
                     -- Subquery to fetch comments related to this article
@@ -283,7 +285,7 @@ class Article {
 
 
     static async createArticleByClient(articleData) {
-        const { user_id, title, image_url, content, category_ids, updated_by } = articleData;
+        const { user_id, title, image_url, content, category_ids, updated_by, is_anonymous, name_anonymous } = articleData;
         try {
             const pool = await poolPromise;
             const request = pool.request();
@@ -293,6 +295,8 @@ class Article {
             request.input('category_ids', sql.NVarChar, category_ids);
             request.input('updated_by', sql.Int, updated_by);
             request.input('user_id', sql.Int, user_id);
+            request.input('is_anonymous', sql.Int, is_anonymous);
+            request.input('name_anonymous', sql.NVarChar, name_anonymous);
             // Xử lý image_url: nếu null hoặc undefined, sẽ lưu NULL vào DB
             if (image_url) {
                 request.input('image_url', sql.NVarChar, image_url);
@@ -301,9 +305,9 @@ class Article {
             }
 
             const query = `
-                INSERT INTO articles (user_id, title, image_url, content, category_ids, updated_by, status)
+                INSERT INTO articles (user_id, title, image_url, content, category_ids, updated_by, status, is_anonymous, name_anonymous)
                 OUTPUT inserted.*
-                VALUES (@user_id, @title, @image_url, @content, @category_ids, @updated_by, 0);
+                VALUES (@user_id, @title, @image_url, @content, @category_ids, @updated_by, 0, @is_anonymous, @name_anonymous);
             `;
             const result = await request.query(query);
 
