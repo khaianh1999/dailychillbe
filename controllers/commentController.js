@@ -17,8 +17,8 @@ class CommentController {
                 image_url = req.file.path; // Path to the image file saved by Multer
             }
 
-            const user_id = await User.getUserInfor(req?.user?.id);
-            if (!user_id) return res.status(404).json({ message: "User không tồn tại" });
+            const user = await User.getUserInfor(req?.user?.id);
+            if (!user) return res.status(404).json({ message: "User không tồn tại" });
 
 
             if (!article_id) {
@@ -34,9 +34,9 @@ class CommentController {
                 content,
                 image_url,
                 parent_id: parent_id ? parseInt(parent_id) : null, // Convert to integer, or null
-                user_id: parseInt(user_id),
+                user_id: parseInt(user.id),
                 article_id: parseInt(article_id), // Parse article_id
-                updated_by: updated_by ? parseInt(updated_by) : parseInt(user_id) // Default updated_by to user_id if not provided
+                updated_by: updated_by ? parseInt(updated_by) : parseInt(user.id) // Default updated_by to user_id if not provided
             };
 
             const newComment = await Comment.createComment(commentData);
