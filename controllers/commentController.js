@@ -1,5 +1,6 @@
 // controllers/commentController.js
 const Comment = require('../models/commentModel');
+const User = require("../models/userModel");
 const fs = require('fs'); // To handle file deletion
 
 class CommentController {
