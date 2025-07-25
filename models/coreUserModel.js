@@ -71,7 +71,7 @@ class CoreUser {
   }
 
   
-  async findOrCreateByEmail(email) {
+  static async findOrCreateByEmail(email) {
     const pool = await poolPromise;
 
     // 🔍 Tìm user theo Email
