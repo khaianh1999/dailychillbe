@@ -14,6 +14,12 @@ const commentRoutes = require('./routes/commentRoutes'); // Import comment route
 const categoryRoutes = require('./routes/categoryRoutes'); // Import category routes
 const mailRoute = require("./routes/mailRoutes");
 
+// app moneynest
+const coreUserRoutes = require("./routes/coreUserRoutes");
+const assetRoutes = require("./routes/assetRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const fs = require('fs'); // Thêm dòng này để kiểm tra/tạo thư mục
 const app = express();
 require("dotenv").config(); // Đảm bảo biến môi trường được load
@@ -60,6 +66,14 @@ app.use("/articles", articleRoutes);
 app.use("/comments", commentRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/mail", mailRoute);
+
+
+// app moneynest
+app.use("/api/users", coreUserRoutes);
+app.use("/api/assets", assetRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // app.listen(3001, () => console.log("Server chạy tại https://api.dailychill.vn"));
 app.listen(3001, '0.0.0.0', () => console.log("Server chạy trên http://103.159.51.13"));
