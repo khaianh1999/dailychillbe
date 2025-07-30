@@ -9,6 +9,8 @@ router.post("/addCode", verifyToken, userController.addCode);
 router.post("/buynow", verifyToken, userController.buyNow);
 router.get("/list_my_order", verifyToken, userController.listMyOrder);
 
+router.get("/get_user", userController.getUserInforAndToken);
+
 router.get("/", userController.getAllUsers);
 router.get("/:id", userController.getUserById);
 router.post("/", userController.createUser);

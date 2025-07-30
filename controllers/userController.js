@@ -1,5 +1,7 @@
 const User = require("../models/userModel");
 const mailController = require('./mailController');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -19,6 +21,40 @@ exports.getUserInfor = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.getUserInforAndToken = async (req, res) => {
+  try {
+    const userId = req.query.userId || req.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "Thiếu userId" });
+    }
+
+    const user = await User.getUserInfor(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User không tồn tại" });
+    }
+
+    const payload = {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+    };
+
+    const token = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: '30d',
+    });
+
+    res.status(200).json({
+      user,
+      token_user: token,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 exports.addCode = async (req, res) => {
   const { refer_code } = req.body;

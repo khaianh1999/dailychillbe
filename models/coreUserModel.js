@@ -26,20 +26,61 @@ class CoreUser {
   }
 
   // Tạo mới user
+  // static async createUser({ FullName, Gender, BirthDate, Email, MonthlyIncome }) {
+  //   const pool = await poolPromise;
+  //   await pool.request()
+  //     .input("FullName", sql.NVarChar, FullName)
+  //     .input("Gender", sql.NVarChar, Gender)
+  //     .input("BirthDate", sql.Date, BirthDate)
+  //     .input("Email", sql.NVarChar, Email)
+  //     .input("MonthlyIncome", sql.Decimal(18, 2), MonthlyIncome)
+  //     .input("CreatedAt", sql.DateTime, new Date())
+  //     .query(`
+  //       INSERT INTO core_users (FullName, Gender, BirthDate, Email, MonthlyIncome, CreatedAt)
+  //       VALUES (@FullName, @Gender, @BirthDate, @Email, @MonthlyIncome, @CreatedAt)
+  //     `);
+  // }
+
   static async createUser({ FullName, Gender, BirthDate, Email, MonthlyIncome }) {
     const pool = await poolPromise;
-    await pool.request()
-      .input("FullName", sql.NVarChar, FullName)
-      .input("Gender", sql.NVarChar, Gender)
-      .input("BirthDate", sql.Date, BirthDate)
-      .input("Email", sql.NVarChar, Email)
-      .input("MonthlyIncome", sql.Decimal(18, 2), MonthlyIncome)
-      .input("CreatedAt", sql.DateTime, new Date())
-      .query(`
-        INSERT INTO core_users (FullName, Gender, BirthDate, Email, MonthlyIncome, CreatedAt)
-        VALUES (@FullName, @Gender, @BirthDate, @Email, @MonthlyIncome, @CreatedAt)
-      `);
+    const transaction = new sql.Transaction(pool);
+  
+    try {
+      await transaction.begin();
+  
+      const request = new sql.Request(transaction);
+  
+      // Insert vào core_users
+      await request
+        .input("FullName", sql.NVarChar, FullName)
+        .input("Gender", sql.NVarChar, Gender)
+        .input("BirthDate", sql.Date, BirthDate)
+        .input("Email", sql.NVarChar, Email)
+        .input("MonthlyIncome", sql.Decimal(18, 2), MonthlyIncome)
+        .input("CreatedAt", sql.DateTime, new Date())
+        .query(`
+          INSERT INTO core_users (FullName, Gender, BirthDate, Email, MonthlyIncome, CreatedAt)
+          VALUES (@FullName, @Gender, @BirthDate, @Email, @MonthlyIncome, @CreatedAt)
+        `);
+      const code = generateRandomUppercaseCode(8);
+      // Insert vào users
+      await request
+        .input("email_user", sql.NVarChar, Email)
+        .input("full_name_user", sql.NVarChar, FullName)
+        .input("created_user", sql.DateTime, new Date())
+        .input("code", sql.NVarChar, code)
+        .query(`
+          INSERT INTO users (email, full_name, code, created_at)
+          VALUES (@email_user, @full_name_user, @code, @created_user)
+        `);
+  
+      await transaction.commit();
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
   }
+  
 
   // Cập nhật user
   static async updateUser(id, { FullName, Gender, BirthDate, Email, MonthlyIncome }) {
@@ -106,6 +147,16 @@ class CoreUser {
       Name: user.FullName || ""
     };
   }
+}
+
+function generateRandomUppercaseCode(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; // Chỉ chứa chữ cái in hoa và số
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 }
 
 module.exports = CoreUser;
