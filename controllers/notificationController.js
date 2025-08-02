@@ -4,7 +4,12 @@ const Notification = require("../models/notificationModel");
 const notificationController = {
   async getAll(req, res) {
     try {
-      const data = await Notification.getAllNotifications();
+      const userId = parseInt(req.query.userId, 10);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "userId không hợp lệ" });
+      }
+  
+      const data = await Notification.getAllNotifications(userId);
       res.json(data);
     } catch (err) {
       res.status(500).json({ message: "Lỗi khi lấy danh sách thông báo", error: err });

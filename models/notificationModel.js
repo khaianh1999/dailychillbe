@@ -3,14 +3,17 @@ const { sql, poolPromise } = require("../config/db");
 
 class Notification {
   // Lấy tất cả thông báo
-  static async getAllNotifications() {
+  static async getAllNotifications(userId) {
     try {
       const pool = await poolPromise;
-      const result = await pool.request().query(`
-        SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt, Type
-        FROM notifications
-        ORDER BY CreatedAt DESC
-      `);
+      const result = await pool.request()
+        .input("UserId", sql.Int, userId)
+        .query(`
+          SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt, Type
+          FROM notifications
+          WHERE UserId = @UserId
+          ORDER BY CreatedAt DESC
+        `);
       return result.recordset;
     } catch (err) {
       throw err;
