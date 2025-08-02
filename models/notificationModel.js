@@ -7,7 +7,7 @@ class Notification {
     try {
       const pool = await poolPromise;
       const result = await pool.request().query(`
-        SELECT NotificationId, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt
+        SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt
         FROM notifications
         ORDER BY CreatedAt DESC
       `);
@@ -24,9 +24,9 @@ class Notification {
       const result = await pool.request()
         .input("id", sql.Int, id)
         .query(`
-          SELECT NotificationId, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt
+          SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt
           FROM notifications
-          WHERE NotificationId = @id
+          WHERE Id = @id
         `);
       return result.recordset[0] || null;
     } catch (err) {
@@ -35,19 +35,21 @@ class Notification {
   }
 
   // Tạo thông báo mới
-  static async createNotification({ UserId, Title, Message }) {
+  static async createNotification({ UserId, Title, Message, NotifyAt = null }) {
     try {
+      const now = new Date();
       const pool = await poolPromise;
       await pool.request()
         .input("UserId", sql.Int, UserId)
         .input("Title", sql.NVarChar, Title)
         .input("Message", sql.NVarChar, Message)
         .input("IsRead", sql.Bit, false)
-        .input("CreatedAt", sql.DateTime, new Date())
-        .input("UpdatedAt", sql.DateTime, new Date())
+        .input("CreatedAt", sql.DateTime, now)
+        .input("UpdatedAt", sql.DateTime, now)
+        .input("NotifyAt", sql.DateTime, NotifyAt)
         .query(`
-          INSERT INTO notifications (UserId, Title, Message, IsRead, CreatedAt, UpdatedAt)
-          VALUES (@UserId, @Title, @Message, @IsRead, @CreatedAt, @UpdatedAt)
+          INSERT INTO notifications (UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt)
+          VALUES (@UserId, @Title, @Message, @IsRead, @CreatedAt, @UpdatedAt, @NotifyAt)
         `);
     } catch (err) {
       throw err;
@@ -55,7 +57,7 @@ class Notification {
   }
 
   // Cập nhật thông báo
-  static async updateNotification(id, { Title, Message, IsRead }) {
+  static async updateNotification(id, { Title, Message, IsRead, NotifyAt = null }) {
     try {
       const pool = await poolPromise;
       await pool.request()
@@ -64,10 +66,15 @@ class Notification {
         .input("Message", sql.NVarChar, Message)
         .input("IsRead", sql.Bit, IsRead)
         .input("UpdatedAt", sql.DateTime, new Date())
+        .input("NotifyAt", sql.DateTime, NotifyAt)
         .query(`
           UPDATE notifications
-          SET Title=@Title, Message=@Message, IsRead=@IsRead, UpdatedAt=@UpdatedAt
-          WHERE NotificationId=@id
+          SET Title = @Title,
+              Message = @Message,
+              IsRead = @IsRead,
+              UpdatedAt = @UpdatedAt,
+              NotifyAt = @NotifyAt
+          WHERE Id = @id
         `);
     } catch (err) {
       throw err;
@@ -80,7 +87,7 @@ class Notification {
       const pool = await poolPromise;
       await pool.request()
         .input("id", sql.Int, id)
-        .query("DELETE FROM notifications WHERE NotificationId=@id");
+        .query("DELETE FROM notifications WHERE Id = @id");
     } catch (err) {
       throw err;
     }
