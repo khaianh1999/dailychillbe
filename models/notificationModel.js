@@ -7,7 +7,7 @@ class Notification {
     try {
       const pool = await poolPromise;
       const result = await pool.request().query(`
-        SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt
+        SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt, Type
         FROM notifications
         ORDER BY CreatedAt DESC
       `);
@@ -24,7 +24,7 @@ class Notification {
       const result = await pool.request()
         .input("id", sql.Int, id)
         .query(`
-          SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt
+          SELECT Id, UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt, Type
           FROM notifications
           WHERE Id = @id
         `);
@@ -35,7 +35,7 @@ class Notification {
   }
 
   // Tạo thông báo mới
-  static async createNotification({ UserId, Title, Message, NotifyAt = null }) {
+  static async createNotification({ UserId, Title, Message, NotifyAt = null, Type = 1 }) {
     try {
       const now = new Date();
       const pool = await poolPromise;
@@ -47,9 +47,10 @@ class Notification {
         .input("CreatedAt", sql.DateTime, now)
         .input("UpdatedAt", sql.DateTime, now)
         .input("NotifyAt", sql.DateTime, NotifyAt)
+        .input("Type", sql.Int, Type)
         .query(`
-          INSERT INTO notifications (UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt)
-          VALUES (@UserId, @Title, @Message, @IsRead, @CreatedAt, @UpdatedAt, @NotifyAt)
+          INSERT INTO notifications (UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt, Type)
+          VALUES (@UserId, @Title, @Message, @IsRead, @CreatedAt, @UpdatedAt, @NotifyAt, @Type)
         `);
     } catch (err) {
       throw err;
@@ -57,7 +58,7 @@ class Notification {
   }
 
   // Cập nhật thông báo
-  static async updateNotification(id, { Title, Message, IsRead, NotifyAt = null }) {
+  static async updateNotification(id, { Title, Message, IsRead, NotifyAt = null, Type = 1 }) {
     try {
       const pool = await poolPromise;
       await pool.request()
@@ -67,13 +68,15 @@ class Notification {
         .input("IsRead", sql.Bit, IsRead)
         .input("UpdatedAt", sql.DateTime, new Date())
         .input("NotifyAt", sql.DateTime, NotifyAt)
+        .input("Type", sql.Int, Type)
         .query(`
           UPDATE notifications
           SET Title = @Title,
               Message = @Message,
               IsRead = @IsRead,
               UpdatedAt = @UpdatedAt,
-              NotifyAt = @NotifyAt
+              NotifyAt = @NotifyAt,
+              Type = @Type
           WHERE Id = @id
         `);
     } catch (err) {
