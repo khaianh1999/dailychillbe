@@ -68,6 +68,7 @@ class Notification {
     try {
       // Đảm bảo NotifyAt là giờ Việt Nam
       const notifyAtVN = NotifyAt ? toVNDate(NotifyAt) : null;
+      console.log("notifyAtVN :", notifyAtVN);
       const pool = await poolPromise;
       await pool.request()
         .input("id", sql.Int, id)
