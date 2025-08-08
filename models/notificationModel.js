@@ -41,8 +41,10 @@ class Notification {
   // Tạo thông báo mới
   static async createNotification({ UserId, Title, Message, NotifyAt = null, Type = 1 }) {
     try {
+      console.log('NotifyAt :' + NotifyAt);
       // Đảm bảo NotifyAt là giờ Việt Nam
       const notifyAtVN = NotifyAt ? toVNDate(NotifyAt) : null; 
+      console.log('notifyAtVN :' + notifyAtVN);
       const now = new Date();
       const pool = await poolPromise;
       await pool.request()

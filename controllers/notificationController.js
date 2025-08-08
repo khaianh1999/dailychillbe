@@ -30,6 +30,7 @@ const notificationController = {
 
   async create(req, res) {
     try {
+      console.log('create :' +req.body);
       await Notification.createNotification(req.body);
       res.status(201).json({ message: "Đã tạo thông báo thành công" });
     } catch (err) {
