@@ -54,7 +54,7 @@ class Notification {
         .input("IsRead", sql.Bit, false)
         .input("CreatedAt", sql.DateTime, now)
         .input("UpdatedAt", sql.DateTime, now)
-        .input("NotifyAt", sql.DateTime, notifyAtVN)
+        .input("NotifyAt", sql.DateTime, NotifyAt)
         .input("Type", sql.Int, Type)
         .query(`
           INSERT INTO notifications (UserId, Title, Message, IsRead, CreatedAt, UpdatedAt, NotifyAt, Type)
@@ -78,7 +78,7 @@ class Notification {
         .input("Message", sql.NVarChar, Message)
         .input("IsRead", sql.Bit, IsRead)
         .input("UpdatedAt", sql.DateTime, new Date())
-        .input("NotifyAt", sql.DateTime, notifyAtVN)
+        .input("NotifyAt", sql.DateTime, NotifyAt)
         .input("Type", sql.Int, Type)
         .query(`
           UPDATE notifications
