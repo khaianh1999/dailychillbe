@@ -22,7 +22,7 @@ const poolPromise = new sql.ConnectionPool(config)
   })
   .catch(err => {
     console.error("❌ SQL Server Connection Failed:", err);
-    process.exit(1);
+    // process.exit(1); // TẠM TẮT DÒNG NÀY ĐỂ TRÁNH APP BỊ CRASH
   });
 
 module.exports = { sql, poolPromise };

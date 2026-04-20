@@ -14,6 +14,11 @@ const commentRoutes = require('./routes/commentRoutes'); // Import comment route
 const categoryRoutes = require('./routes/categoryRoutes'); // Import category routes
 const mailRoute = require("./routes/mailRoutes");
 
+// MySQL New Routes
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const priceRoutes = require("./routes/priceRoutes");
+const tokenRoutes = require("./routes/tokenRoutes");
+
 // app moneynest
 const coreUserRoutes = require("./routes/coreUserRoutes");
 const assetRoutes = require("./routes/assetRoutes");
@@ -24,6 +29,9 @@ const fs = require('fs'); // Thêm dòng này để kiểm tra/tạo thư mục
 const app = express();
 require("dotenv").config(); // Đảm bảo biến môi trường được load
 const DOMAIN_FE =process.env.DOMAIN_FE;
+
+// Import MySQL database connection
+require("./config/mysqlDb");
 
 // Cấu hình CORS
 const corsOptions = {
@@ -74,6 +82,11 @@ app.use("/api/assets", assetRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+// Đăng ký API mới cho MySQL
+app.use("/subscriptions", subscriptionRoutes);
+app.use("/prices", priceRoutes);
+app.use("/tokens", tokenRoutes);
 
 // app.listen(3001, () => console.log("Server chạy tại https://api.dailychill.vn"));
 app.listen(3001, '0.0.0.0', () => console.log("Server chạy trên http://103.159.51.13"));
