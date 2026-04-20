@@ -14,10 +14,24 @@ const commentRoutes = require('./routes/commentRoutes'); // Import comment route
 const categoryRoutes = require('./routes/categoryRoutes'); // Import category routes
 const mailRoute = require("./routes/mailRoutes");
 
+// MySQL New Routes
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const priceRoutes = require("./routes/priceRoutes");
+const tokenRoutes = require("./routes/tokenRoutes");
+
+// app moneynest
+const coreUserRoutes = require("./routes/coreUserRoutes");
+const assetRoutes = require("./routes/assetRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const fs = require('fs'); // Thêm dòng này để kiểm tra/tạo thư mục
 const app = express();
 require("dotenv").config(); // Đảm bảo biến môi trường được load
 const DOMAIN_FE =process.env.DOMAIN_FE;
+
+// Import MySQL database connection
+require("./config/mysqlDb");
 
 // Cấu hình CORS
 const corsOptions = {
@@ -27,6 +41,11 @@ const corsOptions = {
     optionsSuccessStatus: 204 // Một số trình duyệt cũ (IE11, various SmartTVs) mắc kẹt ở 200
 };
 app.use(cors(corsOptions)); // Sử dụng middleware cors với cấu hình
+
+// 2. Tăng giới hạn kích thước body
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // Middleware để parse body của request (đặt trước các route và static file serving)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -56,4 +75,18 @@ app.use("/comments", commentRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/mail", mailRoute);
 
-app.listen(3001, () => console.log("Server chạy tại http://103.159.51.131:3001"));
+
+// app moneynest
+app.use("/api/users", coreUserRoutes);
+app.use("/api/assets", assetRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/notifications", notificationRoutes);
+
+// Đăng ký API mới cho MySQL
+app.use("/subscriptions", subscriptionRoutes);
+app.use("/prices", priceRoutes);
+app.use("/tokens", tokenRoutes);
+
+// app.listen(3001, () => console.log("Server chạy tại https://api.dailychill.vn"));
+app.listen(3001, '0.0.0.0', () => console.log("Server chạy trên http://103.159.51.13"));

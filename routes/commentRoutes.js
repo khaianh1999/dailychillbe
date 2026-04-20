@@ -39,7 +39,8 @@ const upload = multer({
 });
 
 // Định nghĩa các route cho Comment
-router.post('/', upload.single('image'), commentController.createComment);
+const verifyToken = require("../middleware/verifyToken");
+router.post("/", verifyToken, commentController.createComment);
 router.get('/', commentController.getComments);
 router.get('/:id', commentController.getCommentById);
 router.put('/:id', upload.single('image'), commentController.updateComment);

@@ -1,5 +1,6 @@
 const Article = require("../models/articleModel");
 const fs = require('fs'); // Import fs để xử lý xóa file nếu có lỗi
+const path = require('path');
 const mailController = require('./mailController');
 require("dotenv").config(); // Đảm bảo biến môi trường được load
 
@@ -7,6 +8,19 @@ const articleController = {
     async getAllArticles(req, res) {
         try {
             const result = await Article.getAllArticles(req.query);
+            res.status(200).json(result);
+        } catch (err) {
+            res.status(500).json({ message: 'Lỗi khi lấy danh sách bài viết', error: err.message });
+        }
+    },
+    async getAllMyArticles(req, res) {
+        try {
+            const user_id = req.user.id;
+            if (!user_id) {
+                res.status(500).json({ message: 'Lỗi lấy danh sách bài viết', error: "Lỗi token" });
+                return;
+            }
+            const result = await Article.getAllMyArticles(req.query, user_id);
             res.status(200).json(result);
         } catch (err) {
             res.status(500).json({ message: 'Lỗi khi lấy danh sách bài viết', error: err.message });
@@ -46,7 +60,7 @@ const articleController = {
         try {
             // req.file chứa thông tin về file đã tải lên (nếu có)
             // req.body chứa các dữ liệu text khác từ form
-            const { title, content, category_ids, updated_by } = req.body;
+            const { title, content, category_ids, updated_by, is_anonymous, name_anonymous} = req.body;
             let image_url = null;
     
             if (req.file) {
@@ -62,6 +76,8 @@ const articleController = {
                 category_ids,
                 updated_by: parseInt(updated_by) ?? 1, // Đảm bảo updated_by là số nguyên
                 status: 1, // admin đăng thì public luôn
+                is_anonymous : is_anonymous ?? 0,
+                name_anonymous : name_anonymous ?? "",
             };
     
             const newArticle = await Article.createArticle(articleData);
@@ -74,6 +90,7 @@ const articleController = {
                 });
             }
             console.error('Lỗi khi tạo bài viết:', err);
+            writeErrorLog(err); // <<< Ghi lỗi ra file logs/error.log
             res.status(500).json({ message: 'Lỗi khi tạo bài viết', error: err.message });
         }
     },
@@ -82,7 +99,7 @@ const articleController = {
         try {
             // req.file chứa thông tin về file đã tải lên (nếu có)
             // req.body chứa các dữ liệu text khác từ form
-            const { title, content, category_ids, updated_by } = req.body;
+            const { title, content, category_ids, updated_by, is_anonymous, name_anonymous } = req.body;
             let image_url = null;
             const user_id = req.user.id;
             if (!user_id) {
@@ -102,7 +119,9 @@ const articleController = {
                 image_url, // Đường dẫn ảnh hoặc null
                 content,
                 category_ids,
-                updated_by: parseInt(updated_by) ?? 1 // Đảm bảo updated_by là số nguyên
+                updated_by: parseInt(updated_by) ?? 1, // Đảm bảo updated_by là số nguyên
+                is_anonymous : is_anonymous ?? 0,
+                name_anonymous : name_anonymous ?? "",
             };
     
             const newArticle = await Article.createArticleByClient(articleData);
@@ -240,5 +259,22 @@ const articleController = {
         }
     }
 };
+
+function writeErrorLog(error) {
+    const logDir = path.join(__dirname, 'logs');
+    const logFile = path.join(logDir, 'error.log');
+    const timestamp = new Date().toISOString();
+    const logContent = `[${timestamp}] ${error.stack || error}\n\n`;
+
+    // Tạo thư mục logs nếu chưa tồn tại
+    if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir);
+    }
+
+    // Ghi lỗi vào file error.log
+    fs.appendFile(logFile, logContent, (err) => {
+        if (err) console.error('Không thể ghi log lỗi:', err);
+    });
+}
 
 module.exports = articleController;

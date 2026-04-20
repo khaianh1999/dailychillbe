@@ -1,5 +1,6 @@
 // controllers/commentController.js
 const Comment = require('../models/commentModel');
+const User = require("../models/userModel");
 const fs = require('fs'); // To handle file deletion
 
 class CommentController {
@@ -9,23 +10,17 @@ class CommentController {
      */
     async createComment(req, res) {
         try {
-            const { content, parent_id, user_id, article_id, updated_by } = req.body;
+            const { content, parent_id, article_id, updated_by } = req.body;
             let image_url = null;
 
             if (req.file) {
                 image_url = req.file.path; // Path to the image file saved by Multer
             }
 
-            // user_id should ideally come from authenticated user info (e.g., JWT)
-            // For simplicity, assuming it's sent from client or a fixed value for now.
-            if (!user_id) {
-                if (req.file && fs.existsSync(req.file.path)) {
-                    fs.unlink(req.file.path, (unlinkErr) => {
-                        if (unlinkErr) console.error('Error deleting image file after error: user_id missing', unlinkErr);
-                    });
-                }
-                return res.status(400).json({ message: 'user_id is required to create a comment.' });
-            }
+            const user = await User.getUserInfor(req?.user?.id);
+            if (!user) return res.status(404).json({ message: "User không tồn tại" });
+
+
             if (!article_id) {
                 if (req.file && fs.existsSync(req.file.path)) {
                     fs.unlink(req.file.path, (unlinkErr) => {
@@ -39,9 +34,9 @@ class CommentController {
                 content,
                 image_url,
                 parent_id: parent_id ? parseInt(parent_id) : null, // Convert to integer, or null
-                user_id: parseInt(user_id),
+                user_id: parseInt(user.id),
                 article_id: parseInt(article_id), // Parse article_id
-                updated_by: updated_by ? parseInt(updated_by) : parseInt(user_id) // Default updated_by to user_id if not provided
+                updated_by: updated_by ? parseInt(updated_by) : parseInt(user.id) // Default updated_by to user_id if not provided
             };
 
             const newComment = await Comment.createComment(commentData);
